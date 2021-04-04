@@ -35,8 +35,8 @@ namespace DynamicAccessor.Extensions
         internal static Type[] GetGenericTypeParameters(this InvokeMemberBinder binder)
         {
             var typeArgumentsProperty = binder.GetType()
-                .GetInterface("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder")
-                .GetProperty("TypeArguments");
+                ?.GetInterface("Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder")
+                ?.GetProperty("TypeArguments") ?? throw new NotSupportedException("Cannot find required internal type Microsoft.CSharp.RuntimeBinder.ICSharpInvokeOrInvokeMemberBinder");
             var typeArgs = typeArgumentsProperty?.GetValue(binder, null) as IList<Type>;
             return typeArgs?.ToArray() ?? Array.Empty<Type>();
         }
