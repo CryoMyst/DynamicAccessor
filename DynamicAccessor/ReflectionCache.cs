@@ -16,7 +16,6 @@ namespace DynamicAccessor
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Collections.Immutable;
     using System.Linq;
     using System.Reflection;
     using Extensions;
@@ -38,11 +37,11 @@ namespace DynamicAccessor
         /// <summary>
         /// The type methods
         /// </summary>
-        private static readonly ConcurrentDictionary<Type, ImmutableList<MethodInfo>> TypeMethods = new();
+        private static readonly ConcurrentDictionary<Type, IReadOnlyList<MethodInfo>> TypeMethods = new();
         /// <summary>
         /// The type members
         /// </summary>
-        private static readonly ConcurrentDictionary<Type, ImmutableList<MemberInfo>> TypeMembers = new();
+        private static readonly ConcurrentDictionary<Type, IReadOnlyList<MemberInfo>> TypeMembers = new();
 
         /// <summary>
         /// Gets the member.
@@ -54,7 +53,7 @@ namespace DynamicAccessor
         internal static MemberInfo? GetMember(Type type, string name, bool useCache)
         {
             var memberInfos = useCache
-                ? TypeMembers.GetOrAdd(type, (t) => GetTypeFieldsAndProperties(t).ToImmutableList())
+                ? TypeMembers.GetOrAdd(type, (t) => GetTypeFieldsAndProperties(t).ToList())
                 : GetTypeFieldsAndProperties(type);
 
             return memberInfos.FirstOrDefault(m => m.Name == name);
@@ -70,7 +69,7 @@ namespace DynamicAccessor
         internal static bool HasMethod(Type type, string name, bool useCache)
         {
             IEnumerable<MethodInfo> methodInfos = useCache
-                ? TypeMethods.GetOrAdd(type, (t) => GetTypeMethods(t).ToImmutableList())
+                ? TypeMethods.GetOrAdd(type, (t) => GetTypeMethods(t).ToList())
                 : GetTypeMethods(type);
 
             return methodInfos.Any(m => m.Name == name);
@@ -99,7 +98,7 @@ namespace DynamicAccessor
         internal static IEnumerable<MethodInfo> GetMethods(Type type, string name, bool useCache)
         {
             IEnumerable<MethodInfo> methodInfos = useCache
-                ? TypeMethods.GetOrAdd(type, (t) => GetTypeMethods(t).ToImmutableList())
+                ? TypeMethods.GetOrAdd(type, (t) => GetTypeMethods(t).ToList())
                 : GetTypeMethods(type);
 
             return methodInfos.Where(m => m.Name == name);
