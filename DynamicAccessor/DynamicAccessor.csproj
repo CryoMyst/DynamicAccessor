@@ -13,7 +13,7 @@
     <Description>Allows for easy reflection into objects.</Description>
     <PackageProjectUrl>https://github.com/CryoMyst/DynamicAccessor</PackageProjectUrl>
     <RepositoryUrl>https://github.com/CryoMyst/DynamicAccessor</RepositoryUrl>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,9 +22,5 @@
 
   <ItemGroup>
     <AdditionalFiles Include="stylecop.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />
   </ItemGroup>
 </Project>
