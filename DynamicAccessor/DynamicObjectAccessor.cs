@@ -85,7 +85,6 @@ namespace DynamicAccessor
         public override bool TrySetMember(SetMemberBinder binder, object? value)
         {
             var objectType = this.Obj.GetType();
-            var valueType = value?.GetType();
             // Try and get a member associated with this object
             var member = ReflectionCache.GetMember(objectType, binder.Name, this.UseCache);
 
@@ -94,71 +93,7 @@ namespace DynamicAccessor
                 return false;
             }
 
-            switch (member.MemberType)
-            {
-                    case MemberTypes.Field:
-                        {
-                            // A field type
-                            if (member is not FieldInfo fieldinfo)
-                            {
-                                // throw new InvalidCastException($"Member has {MemberTypes.Field} but is not assignable to {typeof(FieldInfo)}");
-                                return false;
-                            }
-
-                            var fieldType = fieldinfo.FieldType;
-
-                            // Handle null assignments
-                            if (value is null && fieldType.IsNullable())
-                            {
-                                fieldinfo.SetValue(this.Obj, null);
-                                return true;
-                            }
-
-                            if (fieldType.IsAssignableFrom(valueType))
-                            {
-                                fieldinfo.SetValue(this.Obj, value);
-                                return true;
-                            }
-
-                            return false;
-                        }
-                    case MemberTypes.Property:
-                        {
-                            if (member is not PropertyInfo propertyInfo)
-                            {
-                                // throw new InvalidCastException($"Property has {MemberTypes.Property} but is not assignable to {typeof(PropertyInfo)}");
-                                return false;
-                            }
-
-                            // Cant assign to get only properties
-                            if (!propertyInfo.CanWrite)
-                            {
-                                return false;
-                            }
-
-                            var propertyType = propertyInfo.PropertyType;
-
-                            // Handle null assignments
-                            if (value is null && propertyType.IsNullable())
-                            {
-                                propertyInfo.SetValue(this.Obj, null);
-                                return true;
-                            }
-
-                            // Ensure type can be assigned to property
-                            if (propertyType.IsAssignableFrom(valueType))
-                            {
-                                propertyInfo.SetValue(this.Obj, value);
-                                return true;
-                            }
-
-                            return false;
-                    }
-                    default:
-                        {
-                            return false;
-                        }
-            }
+            return member.TrySetValue(this.Obj, value);
         }
 
         /// <summary>

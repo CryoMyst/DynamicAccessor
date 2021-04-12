@@ -80,6 +80,27 @@ namespace DynamicAccessor.Extensions
             }
         }
 
+        /// <summary>Gets all members.</summary>
+        /// <param name="t">The t.</param>
+        /// <param name="flags">The flags.</param>
+        /// <returns>IEnumerable&lt;MemberInfo&gt;.</returns>
+        internal static IEnumerable<MemberInfo> GetAllMembers(this Type t, BindingFlags flags)
+        {
+            // Only take from that type
+            var usedFlags = flags | BindingFlags.DeclaredOnly;
+            var memberList = new List<MemberInfo>();
+
+            memberList.AddRange(t.GetMembers(usedFlags));
+
+            Type? currentType = t;
+            while ((currentType = currentType.BaseType) != null)
+            {
+                memberList.AddRange(currentType.GetMembers(flags));
+            }
+                
+            return memberList;
+        }
+
         /// <summary>
         /// Gets the method ex.
         /// </summary>
