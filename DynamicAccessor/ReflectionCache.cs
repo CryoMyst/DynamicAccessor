@@ -109,7 +109,7 @@ namespace DynamicAccessor
         /// </summary>
         /// <param name="type">The type.</param>
         /// <returns>System.Collections.Generic.IEnumerable&lt;System.Reflection.MemberInfo&gt;.</returns>
-        internal static IEnumerable<MemberInfo> GetTypeFieldsAndProperties(Type type) => type.GetMembers(DefaultMemberBindingFlags)
+        internal static IEnumerable<MemberInfo> GetTypeFieldsAndProperties(Type type) => type.GetAllMembers(DefaultMemberBindingFlags)
                 .Where(m => m.MemberType is MemberTypes.Property or MemberTypes.Field);
 
         /// <summary>

@@ -25,7 +25,7 @@ namespace DynamicAccessor.Extensions
     /// <summary>
     /// Class BinderExtensions.
     /// </summary>
-    public static class BinderExtensions
+    internal static class BinderExtensions
     {
         /// <summary>
         /// Gets the generic type parameters.

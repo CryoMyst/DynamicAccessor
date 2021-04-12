@@ -116,6 +116,19 @@ namespace DynamicAccessor.Tests
             Assert.AreEqual(PrivatePropertyStringValue, privatePropertyValue);
         }
 
+
+        /// <summary>Defines the test method AccessPrivateFieldOnBaseClassTest.</summary>
+        [TestMethod]
+        public void AccessPrivateFieldOnBaseClassTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new B(), true);
+            var privateBaseClassProperty = accessor.PrivateBaseClassString;
+            var privateBaseClassPropertyValue = (string)privateBaseClassProperty;
+
+            Assert.IsNotNull(privateBaseClassProperty);
+            Assert.AreEqual(PrivateFieldStringValue, privateBaseClassPropertyValue);
+        }
+
         /// <summary>
         /// Defines the test method AccessStaticPropertyTest.
         /// </summary>
@@ -144,10 +157,10 @@ namespace DynamicAccessor.Tests
         {
             var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
             var publicField = accessor.PublicTestObject;
-            var publicFieldValue = (TestClass.A)publicField;
+            var publicFieldValue = (AccessorMemberTests.A)publicField;
 
             Assert.IsNotNull(publicFieldValue);
-            Assert.IsTrue(publicFieldValue is TestClass.A);
+            Assert.IsTrue(publicFieldValue is AccessorMemberTests.A);
         }
 
         /// <summary>
@@ -213,23 +226,27 @@ namespace DynamicAccessor.Tests
             /// The public test object
             /// </summary>
             public B PublicTestObject = new B();
-
-            /// <summary>
-            /// Class A.
-            /// </summary>
-            public class A
-            {
-            }
-
-            /// <summary>
-            /// Class B.
-            /// Implements the <see cref="DynamicAccessor.Tests.AccessorMemberTests.TestClass.A" />
-            /// </summary>
-            /// <seealso cref="DynamicAccessor.Tests.AccessorMemberTests.TestClass.A" />
-            public class B : A
-            {
-            }
-#pragma warning restore 414
         }
+
+        /// <summary>
+        /// Class A.
+        /// </summary>
+        public class A
+        {
+            /// <summary>
+            /// The private base class string
+            /// </summary>
+            private string PrivateBaseClassString = PrivateFieldStringValue;
+        }
+
+        /// <summary>
+        /// Class B.
+        /// Implements the <see cref="DynamicAccessor.Tests.AccessorMemberTests.TestClass.A" />
+        /// </summary>
+        /// <seealso cref="DynamicAccessor.Tests.AccessorMemberTests.TestClass.A" />
+        public class B : A
+        {
+        }
+#pragma warning restore 414
     }
 }
