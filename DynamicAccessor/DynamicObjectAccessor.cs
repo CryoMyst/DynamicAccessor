@@ -16,10 +16,8 @@ namespace DynamicAccessor
     using System;
     using System.Dynamic;
     using System.Globalization;
-    using System.Linq;
-#pragma warning disable SA1135 // Using directives should be qualified
+    using System.Reflection;
     using Extensions;
-#pragma warning restore SA1135 // Using directives should be qualified
 
     /// <summary>
     /// Defines the <see cref="DynamicObjectAccessor" /> type
@@ -76,6 +74,91 @@ namespace DynamicAccessor
             // Nothing found, fail
             result = null;
             return false;
+        }
+
+        /// <summary>
+        /// Provides the implementation for operations that set member values. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class can override this method to specify dynamic behavior for operations such as setting a value for a property.
+        /// </summary>
+        /// <param name="binder">Provides information about the object that called the dynamic operation. The binder.Name property provides the name of the member to which the value is being assigned. For example, for the statement sampleObject.SampleProperty = "Test", where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class, binder.Name returns "SampleProperty". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
+        /// <param name="value">The value to set to the member. For example, for sampleObject.SampleProperty = "Test", where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class, the value is "Test".</param>
+        /// <returns>true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific run-time exception is thrown.)</returns>
+        public override bool TrySetMember(SetMemberBinder binder, object? value)
+        {
+            var objectType = this.Obj.GetType();
+            var valueType = value?.GetType();
+            // Try and get a member associated with this object
+            var member = ReflectionCache.GetMember(objectType, binder.Name, this.UseCache);
+
+            if (member is null)
+            {
+                return false;
+            }
+
+            switch (member.MemberType)
+            {
+                    case MemberTypes.Field:
+                        {
+                            // A field type
+                            if (member is not FieldInfo fieldinfo)
+                            {
+                                // throw new InvalidCastException($"Member has {MemberTypes.Field} but is not assignable to {typeof(FieldInfo)}");
+                                return false;
+                            }
+
+                            var fieldType = fieldinfo.FieldType;
+
+                            // Handle null assignments
+                            if (value is null && fieldType.IsNullable())
+                            {
+                                fieldinfo.SetValue(this.Obj, null);
+                                return true;
+                            }
+
+                            if (fieldType.IsAssignableFrom(valueType))
+                            {
+                                fieldinfo.SetValue(this.Obj, value);
+                                return true;
+                            }
+
+                            return false;
+                        }
+                    case MemberTypes.Property:
+                        {
+                            if (member is not PropertyInfo propertyInfo)
+                            {
+                                // throw new InvalidCastException($"Property has {MemberTypes.Property} but is not assignable to {typeof(PropertyInfo)}");
+                                return false;
+                            }
+
+                            // Cant assign to get only properties
+                            if (!propertyInfo.CanWrite)
+                            {
+                                return false;
+                            }
+
+                            var propertyType = propertyInfo.PropertyType;
+
+                            // Handle null assignments
+                            if (value is null && propertyType.IsNullable())
+                            {
+                                propertyInfo.SetValue(this.Obj, null);
+                                return true;
+                            }
+
+                            // Ensure type can be assigned to property
+                            if (propertyType.IsAssignableFrom(valueType))
+                            {
+                                propertyInfo.SetValue(this.Obj, value);
+                                return true;
+                            }
+
+                            return false;
+                    }
+                    default:
+                        {
+                            return false;
+                        }
+            }
         }
 
         /// <summary>

@@ -18,9 +18,7 @@ namespace DynamicAccessor
     using System.Dynamic;
     using System.Linq;
     using System.Reflection;
-#pragma warning disable SA1135 // Using directives should be qualified
     using Extensions;
-#pragma warning restore SA1135 // Using directives should be qualified
 
 
     /// <summary>
