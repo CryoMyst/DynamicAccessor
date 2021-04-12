@@ -32,7 +32,7 @@ namespace DynamicAccessor.Extensions
         /// <param name="type">The type.</param>
         /// <param name="bindingFlags">The binding flags.</param>
         /// <returns>IEnumerable&lt;MethodInfo&gt;.</returns>
-        public static IEnumerable<MethodInfo> GetAllMethods(this Type type, BindingFlags bindingFlags)
+        internal static IEnumerable<MethodInfo> GetAllMethods(this Type type, BindingFlags bindingFlags)
         {
             while (true)
             {
@@ -58,7 +58,7 @@ namespace DynamicAccessor.Extensions
         /// <param name="name">The name.</param>
         /// <param name="bindingFlags">The binding flags.</param>
         /// <returns>IEnumerable&lt;MethodInfo&gt;.</returns>
-        public static IEnumerable<MethodInfo> GetAllMethods(this Type type, string name, BindingFlags bindingFlags)
+        internal static IEnumerable<MethodInfo> GetAllMethods(this Type type, string name, BindingFlags bindingFlags)
         {
             while (true)
             {
@@ -89,7 +89,7 @@ namespace DynamicAccessor.Extensions
         /// <param name="parameterTypes">The parameter types.</param>
         /// <param name="genericTypeArguments">The generic type arguments.</param>
         /// <returns>System.Nullable&lt;MethodInfo&gt;.</returns>
-        public static MethodInfo? GetMethodEx(this Type type, string name, BindingFlags bindingFlags, Type[] parameterTypes, Type[] genericTypeArguments)
+        internal static MethodInfo? GetMethodEx(this Type type, string name, BindingFlags bindingFlags, Type[] parameterTypes, Type[] genericTypeArguments)
         {
             foreach (var method in type.GetAllMethods(name, bindingFlags))
             {
@@ -124,6 +124,29 @@ namespace DynamicAccessor.Extensions
             }
 
             return null;
+        }
+
+        internal static bool IsNullable(this Type type)
+        {
+            // All value types are nullable
+            if (!type.IsValueType)
+            {
+                return true;
+            }
+
+            // Value types that are not generic cannot be null
+            if (!type.IsGenericType)
+            {
+                return false;
+            }
+                
+            // Unless wrapped in Nullable<T>
+            if (type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return true;
+            }
+            
+            return false;
         }
     }
 }

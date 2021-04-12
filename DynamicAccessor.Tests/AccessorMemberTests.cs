@@ -173,7 +173,6 @@ namespace DynamicAccessor.Tests
             Assert.ThrowsException<RuntimeBinderException>(() => (int)accessor.PublicField);
         }
 
-
         /// <summary>
         /// Class TestClass.
         /// </summary>
