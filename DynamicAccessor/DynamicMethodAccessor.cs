@@ -64,7 +64,7 @@ namespace DynamicAccessor
 
             if (typeArgs.Length == 0)
             {
-                var matchingMethod = ReflectionCache.GetMethod(this.Obj.GetType(), this._methodName, parameterTypes!, this.UseCache);
+                var matchingMethod = ReflectionCache.GetMethod(this.Type, this._methodName, parameterTypes!, this.UseCache);
 
                 if (matchingMethod is not null)
                 {
@@ -84,7 +84,7 @@ namespace DynamicAccessor
                 // 4. try create the generic method for each
                 // 5. If multiple work then just choose first?
 
-                var methods = ReflectionCache.GetMethods(this.Obj.GetType(), this._methodName, this.UseCache)
+                var methods = ReflectionCache.GetMethods(this.Type, this._methodName, this.UseCache)
                     .Where(m => m.IsGenericMethodDefinition);
 
                 var potentialMethods = new List<MethodInfo>();
