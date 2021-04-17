@@ -13,6 +13,7 @@
 // ***********************************************************************
 namespace DynamicAccessor
 {
+    using System;
     using System.Dynamic;
 
     /// <summary>
@@ -42,5 +43,17 @@ namespace DynamicAccessor
         /// </summary>
         /// <value>The object.</value>
         protected object Obj { get; }
+
+        /// <summary>
+        /// Gets the object.
+        /// </summary>
+        /// <value>The object.</value>
+        public object Object => this.Obj;
+
+        /// <summary>
+        /// Gets the type.
+        /// </summary>
+        /// <value>The type.</value>
+        public Type Type => this.Object.GetType();
     }
 }

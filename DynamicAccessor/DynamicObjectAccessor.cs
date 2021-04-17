@@ -16,7 +16,6 @@ namespace DynamicAccessor
     using System;
     using System.Dynamic;
     using System.Globalization;
-    using System.Reflection;
     using Extensions;
 
     /// <summary>
@@ -32,7 +31,6 @@ namespace DynamicAccessor
         internal DynamicObjectAccessor(object obj, bool useCache = true) : base(obj, useCache)
         {
         }
-
 
         /// <summary>
         /// Creates the specified object.
@@ -50,30 +48,57 @@ namespace DynamicAccessor
         /// <returns>.</returns>
         public override bool TryGetMember(GetMemberBinder binder, out object? result)
         {
-            var objectType = this.Obj.GetType();
-            // Try and get a member associated with this object
-            var member = ReflectionCache.GetMember(objectType, binder.Name, this.UseCache);
+            return TryGetMemberInternal(binder, binder.Name, out result);
+        }
 
-            if (member is not null)
+        /// <summary>
+        /// Provides the implementation for operations that get a value by index. Classes derived from the <see cref="T:System.Dynamic.DynamicObject">DynamicObject</see> class can override this method to specify dynamic behavior for indexing operations.
+        /// </summary>
+        /// <param name="binder">Provides information about the operation.</param>
+        /// <param name="indexes">
+        /// The indexes that are used in the operation. For example, for the sampleObject[3] operation in C# (sampleObject(3) in Visual Basic), where sampleObject is derived from the DynamicObject class, indexes[0] is equal to 3.
+        /// </param>
+        /// <param name="result">The result of the index operation.</param>
+        /// <returns>
+        /// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a run-time exception is thrown.)
+        /// </returns>
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object? result)
+        {
+            if (indexes.Length == 0)
             {
-                var value = member.GetValue(this.Obj);
-                result = value is not null
-                    ? new DynamicObjectAccessor(value, this.UseCache)
-                    : null;
-                return true;
+                result = default;
+                return false;
             }
 
-            // Try and get a method associated with this object
-            var hasMethod = ReflectionCache.HasMethod(objectType, binder.Name, this.UseCache);
-            if (hasMethod)
+            // We can only index using strings
+            if (indexes[0] is not string indexValue)
             {
-                result = new DynamicMethodAccessor(this.Obj, binder.Name, this.UseCache);
-                return true;
+                result = default;
+                return false;
             }
 
-            // Nothing found, fail
-            result = null;
-            return false;
+            if (indexes.Length == 1)
+            {
+                return TryGetMemberInternal(binder, indexValue, out result);
+            }
+            else
+            {
+                // If there is more an one index recursively call on the child
+                // Only work on a valid internal of ObjectAccessor
+                if (TryGetMemberInternal(binder, indexValue, out var child) && child is DynamicObjectAccessor childAccessor)
+                {
+                    var newIndexes = new object[indexes.Length - 1];
+                    Array.Copy(indexes, 1, newIndexes, 0, newIndexes.Length);
+
+                    return childAccessor.TryGetIndex(binder, newIndexes, out result);
+                }
+                else
+                {
+                    // One or more calls failed in the multi-index call
+                    result = default;
+                    return false;
+                }
+            }
         }
 
         /// <summary>
@@ -84,16 +109,50 @@ namespace DynamicAccessor
         /// <returns>true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific run-time exception is thrown.)</returns>
         public override bool TrySetMember(SetMemberBinder binder, object? value)
         {
-            var objectType = this.Obj.GetType();
-            // Try and get a member associated with this object
-            var member = ReflectionCache.GetMember(objectType, binder.Name, this.UseCache);
+            return TrySetMemberInternal(binder, binder.Name, value);
+        }
 
-            if (member is null)
+        /// <summary>
+        /// Provides the implementation for operations that set a value by index. Classes derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class can override this method to specify dynamic behavior for operations that access objects by a specified index.
+        /// </summary>
+        /// <param name="binder">Provides information about the operation.</param>
+        /// <param name="indexes">The indexes that are used in the operation. For example, for the sampleObject[3] = 10 operation in C# (sampleObject(3) = 10 in Visual Basic), where sampleObject is derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class, indexes[0] is equal to 3.</param>
+        /// <param name="value">The value to set to the object that has the specified index. For example, for the sampleObject[3] = 10 operation in C# (sampleObject(3) = 10 in Visual Basic), where sampleObject is derived from the <see cref="T:System.Dynamic.DynamicObject"></see> class, value is equal to 10.</param>
+        /// <returns>true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific run-time exception is thrown.</returns>
+        public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object? value)
+        {
+            if (indexes.Length == 0)
             {
                 return false;
             }
 
-            return member.TrySetValue(this.Obj, value);
+            // We can only index using strings
+            if (indexes[0] is not string indexValue)
+            {
+                return false;
+            }
+
+            if (indexes.Length == 1)
+            {
+                return TrySetMemberInternal(binder, indexValue, value);
+            }
+            else
+            {
+                // If there is more an one index recursively call on the child
+                // Only work on a valid internal of ObjectAccessor
+                if (TryGetMemberInternal(binder, indexValue, out var child) && child is DynamicObjectAccessor childAccessor)
+                {
+                    var newIndexes = new object[indexes.Length - 1];
+                    Array.Copy(indexes, 1, newIndexes, 0, newIndexes.Length);
+
+                    return childAccessor.TrySetIndex(binder, newIndexes, value);
+                }
+                else
+                {
+                    // One or more calls failed in the multi-index call
+                    return false;
+                }
+            }
         }
 
         /// <summary>
@@ -137,6 +196,62 @@ namespace DynamicAccessor
             var typeArgs = binder.GetGenericTypeParameters();
             var methodAccessor = new DynamicMethodAccessor(this.Obj, binder.Name, this.UseCache);
             return methodAccessor.TryInvokeInternal(args, typeArgs, out result);
+        }
+
+        /// <summary>
+        /// Tries the get member internal.
+        /// </summary>
+        /// <param name="binder">The binder.</param>
+        /// <param name="memberName">Name of the member.</param>
+        /// <param name="result">The result.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
+        private bool TryGetMemberInternal(DynamicMetaObjectBinder binder, string memberName, out object? result)
+        {
+            var objectType = this.Obj.GetType();
+            // Try and get a member associated with this object
+            var member = ReflectionCache.GetMember(objectType, memberName, this.UseCache);
+
+            if (member is not null)
+            {
+                var value = member.GetValue(this.Obj);
+                result = value is not null
+                    ? new DynamicObjectAccessor(value, this.UseCache)
+                    : null;
+                return true;
+            }
+
+            // Try and get a method associated with this object
+            var hasMethod = ReflectionCache.HasMethod(objectType, memberName, this.UseCache);
+            if (hasMethod)
+            {
+                result = new DynamicMethodAccessor(this.Obj, memberName, this.UseCache);
+                return true;
+            }
+
+            // Nothing found, fail
+            result = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Tries the set member internal.
+        /// </summary>
+        /// <param name="binder">The binder.</param>
+        /// <param name="memberName">Name of the member.</param>
+        /// <param name="value">The value.</param>
+        /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
+        private bool TrySetMemberInternal(DynamicMetaObjectBinder binder, string memberName, object? value)
+        {
+            var objectType = this.Obj.GetType();
+            // Try and get a member associated with this object
+            var member = ReflectionCache.GetMember(objectType, memberName, this.UseCache);
+
+            if (member is null)
+            {
+                return false;
+            }
+
+            return member.TrySetValue(this.Obj, value);
         }
     }
 }

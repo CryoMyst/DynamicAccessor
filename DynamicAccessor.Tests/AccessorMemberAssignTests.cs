@@ -110,6 +110,34 @@ namespace DynamicAccessor.Tests
             Assert.ThrowsException<RuntimeBinderException>(() => accessor.TestValueField = null);
         }
 
+
+        /// <summary>
+        /// Defines the test method SetByIndexTest.
+        /// </summary>
+        [TestMethod]
+        public void SetByIndexTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            accessor["TestField"] = TestStringValue;
+            var newFieldValue = (string) accessor.TestField;
+
+            Assert.AreEqual(TestStringValue, newFieldValue);
+        }
+
+
+        /// <summary>
+        /// Defines the test method SetByMultiIndexTest.
+        /// </summary>
+        [TestMethod]
+        public void SetByMultiIndexTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            accessor["Child", "PublicStringField"] = TestStringValue;
+            var newFieldValue = (string) accessor.Child.PublicStringField;
+
+            Assert.AreEqual(TestStringValue, newFieldValue);
+        }
+
         /// <summary>
         /// Class TestClass.
         /// </summary>
@@ -134,6 +162,22 @@ namespace DynamicAccessor.Tests
             /// The test value field
             /// </summary>
             public int TestValueField = 1;
+
+            /// <summary>
+            /// The child
+            /// </summary>
+            public ChildClass Child = new ChildClass();
+        }
+
+        /// <summary>
+        /// Class ChildClass.
+        /// </summary>
+        class ChildClass
+        {
+            /// <summary>
+            /// The public string field
+            /// </summary>
+            public string PublicStringField = string.Empty;
         }
     }
 }

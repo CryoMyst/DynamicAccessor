@@ -187,6 +187,54 @@ namespace DynamicAccessor.Tests
         }
 
         /// <summary>
+        /// Defines the test method GetByIndexTest.
+        /// </summary>
+        [TestMethod]
+        public void GetByIndexTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            var publicField = accessor["PublicTestObject"];
+            var publicFieldValue = (AccessorMemberTests.A)publicField;
+
+            Assert.IsNotNull(publicFieldValue);
+            Assert.IsTrue(publicFieldValue is AccessorMemberTests.A);
+        }
+
+        /// <summary>
+        /// Defines the test method GetByMultiIndexTest.
+        /// </summary>
+        [TestMethod]
+        public void GetByMultiIndexTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            var privateClassField = accessor["PublicTestObject", "PrivateClassString"];
+            var privateClassFieldValue = (string)privateClassField;
+
+            Assert.IsNotNull(privateClassField);
+            Assert.AreEqual(PrivateFieldStringValue, privateClassFieldValue);
+        }
+
+        /// <summary>
+        /// Defines the test method AccessInvalidIndexTest.
+        /// </summary>
+        [TestMethod]
+        public void AccessInvalidIndexTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            Assert.ThrowsException<RuntimeBinderException>(() => accessor["PropertyThatDoesNotExist"]);
+        }
+
+        /// <summary>
+        /// Defines the test method AccessUsingInvalidIndexType.
+        /// </summary>
+        [TestMethod]
+        public void AccessUsingInvalidIndexType()
+        {
+            var accessor = DynamicObjectAccessor.Create(new TestClass(), true);
+            Assert.ThrowsException<RuntimeBinderException>(() => accessor[42]);
+        }
+
+        /// <summary>
         /// Class TestClass.
         /// </summary>
         class TestClass
@@ -246,6 +294,10 @@ namespace DynamicAccessor.Tests
         /// <seealso cref="DynamicAccessor.Tests.AccessorMemberTests.TestClass.A" />
         public class B : A
         {
+            /// <summary>
+            /// The private class string
+            /// </summary>
+            private string PrivateClassString = PrivateFieldStringValue;
         }
 #pragma warning restore 414
     }

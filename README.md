@@ -40,11 +40,11 @@ TestClass testClass = new TestClass();
 DynamicObjectAccessor accessor = DynamicObjectAccessor.Create(testClass, useCache: true);
 ```
 
-
 ## Accessing non-public values
 ```cs
 // Simply access the property as you would a any public property
 DynamicObjectAccessor wrappedValue =  accessor.PrivateProperty;
+
 // When you wish to use the value simply cast to valid type
 string value = (string) wrappedValue;
 // value == "Some Value"
@@ -55,6 +55,18 @@ string value = (string) wrappedValue;
 // Simply assign to the property the value you wish, you can use derived types
 accessor.PrivateProperty = "Some New Value";
 // value == "Some New Value"
+```
+
+## Indexers
+DynamicAccessor supports accessing object via single and multi-indexers
+```cs
+// Accesing a value
+DynamicObjectAccessor wrappedValue =  accessor["PrivateProperty"];
+// Setting a value
+accessor["PrivateProperty"] = "Some New Value";
+
+// Multi-indexing
+DynamicObjectAccessor wrappedDeepObjectValue =  deepObjectyAccessor["SomeField", "SomeFieldIndexChild"];
 ```
 
 ## Invoke method
@@ -73,11 +85,12 @@ int value = (int) accessor.GetSomethingPrivate(42);
 // Invoking generic methods can be done by supplying the correct type arguments
 // Dynamic accessor will find the first method that can match this signature
 Type value = (Type) accessor.GetSomethingGeneric<int>();
-// value == typoeof(int)
+// value == typeof(int)
 ```
 
 ## Contributing
-Pull requests are welcome to the develop branch ONLY, tests will be run on each pull request to ensure integrety of library.
+Pull requests are welcome, tests will be run on each pull request to ensure integrety of library. 
+Make sure a test convers the changes you make.
 
 # License
 [GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
