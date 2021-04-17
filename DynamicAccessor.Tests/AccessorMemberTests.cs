@@ -235,6 +235,22 @@ namespace DynamicAccessor.Tests
         }
 
         /// <summary>
+        /// Defines the test method AccessHiddenFieldTest.
+        /// </summary>
+        [TestMethod]
+        public void AccessHiddenFieldTest()
+        {
+            var accessor = DynamicObjectAccessor.Create(new B(), true);
+            var accessorHidden = DynamicObjectAccessor.Create(new B(), true, typeof(A));
+
+            var privateFieldValue = (string) accessor.HiddenStringField;
+            var hiddenPrivateFieldValue = (string) accessorHidden.HiddenStringField;
+
+            Assert.AreEqual(privateFieldValue, string.Empty);
+            Assert.AreEqual(hiddenPrivateFieldValue, PrivateFieldStringValue);
+        }
+
+        /// <summary>
         /// Class TestClass.
         /// </summary>
         class TestClass
@@ -285,6 +301,11 @@ namespace DynamicAccessor.Tests
             /// The private base class string
             /// </summary>
             private string PrivateBaseClassString = PrivateFieldStringValue;
+
+            /// <summary>
+            /// The hidden string field
+            /// </summary>
+            private string HiddenStringField = PrivateFieldStringValue;
         }
 
         /// <summary>
@@ -298,6 +319,11 @@ namespace DynamicAccessor.Tests
             /// The private class string
             /// </summary>
             private string PrivateClassString = PrivateFieldStringValue;
+
+            /// <summary>
+            /// The hidden string field
+            /// </summary>
+            private string HiddenStringField = string.Empty;
         }
 #pragma warning restore 414
     }

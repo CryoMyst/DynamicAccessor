@@ -28,7 +28,8 @@ namespace DynamicAccessor
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <param name="useCache">if set to <c>true</c> [use cache].</param>
-        internal DynamicObjectAccessor(object obj, bool useCache = true) : base(obj, useCache)
+        /// <param name="treatAsType">Type of the treat as.</param>
+        internal DynamicObjectAccessor(object obj, bool useCache = true, Type? treatAsType = null) : base(obj, useCache, treatAsType)
         {
         }
 
@@ -37,8 +38,9 @@ namespace DynamicAccessor
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <param name="useCache">if set to <c>true</c> [use cache].</param>
+        /// <param name="type">The type.</param>
         /// <returns>.</returns>
-        public static dynamic Create(object obj, bool useCache = true) => new DynamicObjectAccessor(obj, useCache);
+        public static dynamic Create(object obj, bool useCache = true, Type? treatAsType = null) => new DynamicObjectAccessor(obj, useCache, treatAsType);
 
         /// <summary>
         /// Tries the get member.
@@ -207,7 +209,7 @@ namespace DynamicAccessor
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         private bool TryGetMemberInternal(DynamicMetaObjectBinder binder, string memberName, out object? result)
         {
-            var objectType = this.Obj.GetType();
+            var objectType = this.Type;
             // Try and get a member associated with this object
             var member = ReflectionCache.GetMember(objectType, memberName, this.UseCache);
 
@@ -242,7 +244,7 @@ namespace DynamicAccessor
         /// <returns><c>true</c> if XXXX, <c>false</c> otherwise.</returns>
         private bool TrySetMemberInternal(DynamicMetaObjectBinder binder, string memberName, object? value)
         {
-            var objectType = this.Obj.GetType();
+            var objectType = this.Type;
             // Try and get a member associated with this object
             var member = ReflectionCache.GetMember(objectType, memberName, this.UseCache);
 

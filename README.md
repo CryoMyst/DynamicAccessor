@@ -88,6 +88,26 @@ Type value = (Type) accessor.GetSomethingGeneric<int>();
 // value == typeof(int)
 ```
 
+## Accessing hidden value
+```cs
+class A
+{
+    string SomeField = "HiddenValue";
+}
+
+// B has a field that hides a field in class A
+class B : A
+{
+    string SomeField = string.Empty;
+}
+
+// Use the treatAsType parameter to override the type being used
+DynamicObjectAccessor accessor = DynamicObjectAccessor.Create(testClass, useCache: true, treatAsType: typeof(A));
+
+var value = (string) accessor.SomeField;
+// value == "HiddenValue"
+```
+
 ## Contributing
 Pull requests are welcome, tests will be run on each pull request to ensure integrety of library. 
 Make sure a test convers the changes you make.

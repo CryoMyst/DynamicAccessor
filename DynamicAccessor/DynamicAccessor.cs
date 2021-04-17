@@ -26,10 +26,12 @@ namespace DynamicAccessor
         /// </summary>
         /// <param name="obj">The object.</param>
         /// <param name="useCache">if set to <c>true</c> [use cache].</param>
-        internal DynamicAccessor(object obj, bool useCache = true)
+        /// <param name="treatAsType">Type of the treat as.</param>
+        internal DynamicAccessor(object obj, bool useCache = true, Type? treatAsType = null)
         {
             this.UseCache = useCache;
             this.Obj = obj;
+            this.TreatAsType = treatAsType;
         }
 
         /// <summary>
@@ -45,6 +47,12 @@ namespace DynamicAccessor
         protected object Obj { get; }
 
         /// <summary>
+        /// Gets the type of the treat as.
+        /// </summary>
+        /// <value>The type of the treat as.</value>
+        protected Type? TreatAsType { get; }
+
+        /// <summary>
         /// Gets the object.
         /// </summary>
         /// <value>The object.</value>
@@ -54,6 +62,6 @@ namespace DynamicAccessor
         /// Gets the type.
         /// </summary>
         /// <value>The type.</value>
-        public Type Type => this.Object.GetType();
+        public Type Type => TreatAsType ?? this.Object.GetType();
     }
 }
